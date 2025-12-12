@@ -8,13 +8,9 @@
    ;; parameters
    *ncbi-ftp*
    *chromosome-links*
-
    ;; functions
    get-contents
    download-chromosomes
    decompress-chromosomes
    concatenate-fastas
-
-
-
    ))

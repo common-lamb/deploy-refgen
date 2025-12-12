@@ -1,8 +1,15 @@
+;; setup
+;;
+;; qlot init
+;; qlot install
+;; qlot add {each from asdf}
+
+;; startup
+;;
+;; &&& conda
+;; &&& asdf
 
 (in-package #:refgen/download)
-
-
-
 
 ;; contains chr1H.fna.gz - 7H
 ;; trailing / mandatory

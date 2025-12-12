@@ -6,10 +6,10 @@
                ;; package ; qlot add
                "cmd" ; ql cmd
                "str" ; ql cl-str
-               "drakma"
-               "trivial-download"
-               "cl-ppcre"
-               "chipz"
+               "drakma" ; ql drakma
+               "trivial-download" ; ql trivial-download
+               "cl-ppcre" ; ql cl-ppcre
+               "chipz" ;  ql chipz
 
                "qlot" ; ql qlot
                "alexandria" ; ql alexandria
@@ -22,3 +22,25 @@
                (:file "refgen-download") ; .lisp
                )
   )
+
+#|
+
+;; utility naming convention
+
+;;repo name
+githib.com/common-lamb/genomic-refgen
+  genomic-refgen.asd
+  package.lisp
+  refgen-download.lisp
+
+;;system name
+(asdf:defsystem "com.lamb.genomic-refgen"
+  (:depends-on "other-asdf-system"))
+
+;;package name
+(defpackage #:refgen/download
+  (:use #:cl)
+;;(:package-local-nicknames :cool :com-lamb-utility-long)
+  (:export *sym*))
+
+|#
