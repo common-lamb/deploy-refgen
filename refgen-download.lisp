@@ -96,7 +96,7 @@ ALERT: this program is not designed to respect the current contents and may over
   "ensure deps and locations etc are right"
   (format t "~&checking tools on path" )
   (format t "~&all on path: ~S" (every #'zerop (check-environment)))
-  ;; &&& announce exist or make
+  ;; announce exist or make
   (format t "~&checking *target-dir* exists" )
   (format t "~&exists: ~A" (check-target)))
 
@@ -137,8 +137,7 @@ ALERT: this program is not designed to respect the current contents and may over
                 (format t "~%Decompressing ~A~&" basename)
                 (chipz:decompress rename 'chipz:gzip zip)
                 ;; remove .gz file
-                (uiop:delete-file-if-exists zip)
-                ))
+                (uiop:delete-file-if-exists (probe-file zip))))
             zips)))
 
 (defun concatenate-fastas ()
