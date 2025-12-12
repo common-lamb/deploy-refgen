@@ -1,6 +1,7 @@
 (defsystem "com.lamb.genomic-refgen"
   :description "refgen operations, currently: download & prep"
   :author "common-lamb (https://github.com/common-lamb)"
+  :version "0.0.1"
   :license "MIT"
   :depends-on (
                ;; package ; qlot add
