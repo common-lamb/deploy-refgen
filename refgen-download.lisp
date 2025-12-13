@@ -13,19 +13,41 @@
 
 (in-package #:refgen/download)
 
-(defparameter *ncbi-ftp* "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/904/849/725/GCF_904849725.1_MorexV3_pseudomolecules_assembly/GCF_904849725.1_MorexV3_pseudomolecules_assembly_assembly_structure/Primary_Assembly/assembled_chromosomes/FASTA/"
+;; SRG parameters
+(defparameter *restriction-enzyme-1* nil
+  " first restriction enzyme
+we choose ApeKI or PstI
+https://pmc.ncbi.nlm.nih.gov/articles/PMC9394214/
+")
+(defparameter *restriction-enzyme-2* nil
+  " second restriction enzyme
+we choose ApeKI or MspI
+https://pmc.ncbi.nlm.nih.gov/articles/PMC9394214/
+")
+(defparameter *min-bp* nil
+  " minimum base pair length of digested chromosome fragments
+we chose 50")
+(defparameter *max-bp* nil
+  " maximum base pair length of digested chromosome fragments
+we choose 1000")
+(defparameter *species* nil
+  " the species of the refgen")
+
+;; pipeline parameters
+(defparameter *ncbi-ftp* nil
   "
-https address to the dir above the fasta files
-ie. contains chromosome data
-for barley, chr1H.fna.gz - 7H
+ftp address to the dir above the fasta files
 trailing / is mandatory
+ie. contains chromosome data
+for barley, chr1H.fna.gz - chr7H.fna.gz
 
-check it with get-ftp-html
+check the content with get-ftp-html
 
-"
-  )
+morexV3
+ \"https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/904/849/725/GCF_904849725.1_MorexV3_pseudomolecules_assembly/GCF_904849725.1_MorexV3_pseudomolecules_assembly_assembly_structure/Primary_Assembly/assembled_chromosomes/FASTA/\"
+")
 
-(defparameter *chromosome-links* (ppcre:create-scanner "(<a href=\")(chr[1-7]H.fna.gz)(\">)")
+(defparameter *chr-link-regex* nil
   "
 a perl compatible reg ex (pcre)
 in three groups
@@ -33,10 +55,13 @@ the first use parses html for href links
 the second use parses links for groups to get the file name
 
 matches barley links and chromsomes:
-    \"(<a href=\")(chr[1-7]H.fna.gz)(\">)\"
+     group 1     group 2           group 3
+   '(<a href=\")(chr[1-7]H.fna.gz)(\">)'
+    make the single quotes double quotes
 
 check with get-link-strings
-or get-ftp-html and use  pcre at https://regex101.com/ ")
+or get-ftp-html and use  pcre at https://regex101.com/
+")
 
 (defparameter *target-dir* nil
   "
@@ -56,8 +81,8 @@ ALERT: this program is not designed to respect the current contents and may over
   "ensure needed tools are on path. throws big stinky errors if something needed is not found, or a nice list of 0 exit codes if everything is on path."
   (list
    (cmd:cmd "which sbcl")
+   (cmd:cmd "which git")
    ;; for SRG
-   ;; srg_extractor.py (this distribution)
    (cmd:cmd "which parallel")
    (cmd:cmd "which bwa")
    (cmd:cmd "which python")
@@ -66,11 +91,61 @@ ALERT: this program is not designed to respect the current contents and may over
    (cmd:cmd "which samtools")
    (cmd:cmd "which bedtools")))
 
+;; &&& add more
+(defun check-variables ()
+  "tests if all variables are set"
+  ;; *restriction-enzyme-1*
+  (if (null *restriction-enzyme-1*)
+      (error "the parameter *restriction-enzyme-1* must be set.
+try: (documentation '*some-var* 'variable) ~&~&~A"
+             (documentation '*restriction-enzyme-1* 'variable) )
+      (format t "~%*restriction-enzyme-1* set to : ~A" *restriction-enzyme-1*))
+  ;; *restriction-enzyme-2*
+  (if (null *restriction-enzyme-2*)
+      (error "the parameter *restriction-enzyme-2* must be set.
+try: (documentation '*some-var* 'variable) ~&~&~A"
+             (documentation '*restriction-enzyme-2* 'variable) )
+      (format t "~%*restriction-enzyme-2* set to : ~A" *restriction-enzyme-2*))
+  ;; *min-bp*
+  (if (null *min-bp*)
+      (error "the parameter *min-bp* must be set.
+try: (documentation '*some-var* 'variable) ~&~&~A"
+             (documentation '*min-bp* 'variable) )
+      (format t "~%*min-bp* set to : ~A" *min-bp*))
+  ;; *max-bp*
+  (if (null *max-bp*)
+      (error "the parameter *max-bp* must be set.
+try: (documentation '*some-var* 'variable) ~&~&~A"
+             (documentation '*max-bp* 'variable) )
+      (format t "~%*max-bp* set to : ~A" *max-bp*))
+  ;; *species*
+  (if (null *species*)
+      (error "the parameter *species* must be set.
+try: (documentation '*some-var* 'variable) ~&~&~A"
+             (documentation '*species* 'variable) )
+      (format t "~%*species* set to : ~A" *species*))
+  ;; *ncbi-ftp*
+  (if (null *ncbi-ftp*)
+      (error "the parameter *ncbi-ftp* must be set.
+try: (documentation '*some-var* 'variable) ~&~&~A"
+             (documentation '*ncbi-ftp* 'variable) )
+      (format t "~%*ncbi-ftp* set to : ~A" *ncbi-ftp*))
+  ;; *chr-link-regex*
+  (if (null *chr-link-regex*)
+      (error "the parameter *chr-link-regex* must be set.
+try: (documentation '*some-var* 'variable) ~&~&~A"
+             (documentation '*chr-link-regex* 'variable) )
+      (format t "~%*chr-link-regex* set to : ~A" *chr-link-regex*))
+  ;; *target-dir*
+  (if (null *target-dir*)
+      (error "the parameter *target-dir* must be set.
+try: (documentation '*some-var* 'variable) ~&~&~A"
+             (documentation '*target-dir* 'variable) )
+      (format t "~%*target-dir* set to : ~A" *target-dir*))
+  T)
+
 (defun check-target ()
   "tests if target-dir exists, offers to create"
-  ;;check set
-  (when (null *target-dir*)
-    (error "the parameter *target-dir* must be set. try: (documentation '*target-dir* 'variable)"))
   ;; check exists
   (let ((E (probe-file *target-dir*)))
     (if E
@@ -79,24 +154,29 @@ ALERT: this program is not designed to respect the current contents and may over
           (format t "target dir exists")
           (format t "~&contents:~% ~A"
                   (directory (merge-pathnames "**/*.*" *target-dir*)))
-          (format t "~&proceed? possibly overwringing some of these files."))
+          (format t "~&proceed? certainly overwriting these files."))
         ;; offer to make
         (progn
           (format t "~&target dir does not exist")
-          (format t "~&proceed? creating dir:~%~A")
-
-          )))
+          (format t "~&proceed? creating dir:~%~A" *target-dir*))))
   ;; user check with override
-  (unless *target-dir-approval*
+  (if (not *target-dir-approval*)
     (let ((cont (y-or-n-p)))
       (if cont
-          (print *target-dir*)
-          (error "please setf a new location, or remove sensitive files. Unable to proceed without approval for use of *target-dir*: ~A" *target-dir*)))))
+          (ensure-directories-exist *target-dir*)
+          (error "please setf a new location, or remove sensitive files. Unable to proceed without approval for use of *target-dir*: ~A" *target-dir*)))
+    (let ((must-pre-exist (probe-file *target-dir*)))
+      (unless must-pre-exist
+        (error "with preapproval the target must already exist")))))
 
-(defun check-assumptions ()
-  "ensure deps and locations etc are right"
+(defun check-prerequisites()
+  "ensure vars, deps and locations etc are right"
+  ;;
   (format t "~&checking tools on path" )
   (format t "~&all on path: ~S" (every #'zerop (check-environment)))
+  ;;
+  (format t "~&checking parameters are set" )
+  (format t "~&all set: ~S" (check-variables))
   ;; announce exist or make
   (format t "~&checking *target-dir* exists" )
   (format t "~&exists: ~A" (check-target)))
@@ -106,11 +186,13 @@ ALERT: this program is not designed to respect the current contents and may over
 
 (defun get-link-strings ()
   "parse the html content for chromosome links"
-  (let ((links (ppcre:all-matches-as-strings *chromosome-links*
-                                             (get-ftp-html))))
-    ;; get the second group
+  ;; get the links
+  (let* ((scanner (ppcre:create-scanner *chr-link-regex* ))
+         (links (ppcre:all-matches-as-strings scanner
+                                              (get-ftp-html))))
+    ;; get the second groups
     (mapcar (lambda (link) (ppcre:register-groups-bind (nil 2nd nil)
-                               (*chromosome-links* link)
+                               (scanner link)
                              2nd))
             links)))
 
@@ -122,7 +204,6 @@ ALERT: this program is not designed to respect the current contents and may over
 
 (defun download-chromosomes ()
   "use parameters to pull files to target"
-  (check-assumptions)
   (dolist (l (get-link-strings))
     (format t "~&~%downloading: ~S~%" l)
     (get-file l)))
@@ -172,22 +253,17 @@ ALERT: this program is not designed to respect the current contents and may over
               :while line
               :do (write-line line out))))))
 
-;; &&& srg
+;; SRG
 
 (defun clone-srg ()
-  "clone the SRG repo in *target-dir*"
-  ;; creates: *target-dir*/SRG-Extractor
-  (cmd:cmd "git clone https://github.com/common-lamb/SRG-Extractor.git" :in *target-dir*))
+  "conditionally clone the SRG repo in *target-dir*"
+  (unless (probe-file (merge-pathnames "SRG-Extractor" *target-dir*))
+    ;; creates: *target-dir*/SRG-Extractor
+    ;; &&& pull request and change link to /jlaroche/
+    (cmd:cmd "git clone https://github.com/common-lamb/SRG-Extractor.git" :in *target-dir*)))
 
-;; srg params
-;; PstI–MspI
-;; https://pmc.ncbi.nlm.nih.gov/articles/PMC9394214/
-(defparameter *restriction-enzyme-1* "PstI")
-(defparameter *restriction-enzyme-2* "MspI")
-(defparameter *min-bp* "50")
-(defparameter *max-bp* "1000")
-(defparameter *species* "barley")
 (defun fasta-srg (fasta)
+  (clone-srg)
   (let* (
          (nude (filepaths:drop-extension fasta))
          (name (pathname-name nude))
@@ -240,17 +316,55 @@ ALERT: this program is not designed to respect the current contents and may over
     (format t "~&done SRG~%")
     ))
 
-(fasta-srg #P"/mnt/QNAP/holdens/LIBS/BarleyReferenceGenomes/test/chr1H.fasta")
+(defun fastas-srg ()
+  "collect and process all fasta files"
+  ;; process all fastas
+  (let ((fastas
+          ;; all fasta, but not if _SRG processed
+          (remove-if #'(lambda (p)
+                         (str:containsp "_SRG" (pathname-name p)))
+                     (directory (merge-pathnames "*.fasta" *target-dir*)))))
+    (mapcar #'fasta-srg fastas))
+  ;; clean up
+  (uiop:delete-directory-tree
+   (merge-pathnames "SRG-Extractor/" *target-dir*)
+   :validate t)
+  (let ((non-fastas
+          ;; all non fasta
+          (remove-if #'(lambda (p)
+                         (str:containsp "fasta" (pathname-type p)))
+                     (directory (merge-pathnames "*.*" *target-dir*)))))
+    (mapcar #'uiop:delete-file-if-exists non-fastas)))
+
+;; index
+(defun fasta-index (fasta)
+  (let ((name (pathname-name fasta)))
+
+    ;; bwa index -a bwtsw SRG.fasta
+    (format t  "~&~%bwa index ~A~&~%" name)
+    (cmd:cmd
+     (format nil "bwa index -a bwtsw ~A" fasta)
+     :in *target-dir*)
+
+    ;; samtools faidx SRG.fasta
+    (format t  "~&~%samtools faidx ~A~&~%" name)
+    (cmd:cmd
+     (format nil "samtools faidx ~A" fasta)
+     :in *target-dir*)
+
+    (format t  "~&~%index complete ~A~&~%" name)))
 
 
+(defun fastas-index ()
+  (let ((fastas
+          (directory (merge-pathnames "*.fasta" *target-dir*))))
+    (mapcar #'fasta-index fastas)))
 
-
-
-;; &&& index
-;; bwa index -a bwtsw SRG.fasta
-;; samtools faidx SRG.fasta
-
-;;;; big operation
-;;(download-chromosomes)
-;; (decompress-chromosomes)
-;; (concatenate-fastas)
+;;;; all operations
+(defun deploy-refgen ()
+  (check-prerequisites)
+  (download-chromosomes)
+  (decompress-chromosomes)
+  (concatenate-fastas)
+  (fastas-srg)
+  (fastas-index))
