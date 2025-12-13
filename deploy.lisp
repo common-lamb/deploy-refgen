@@ -8,10 +8,10 @@
 ;;
 ;; M-x conda-env-activate try-refgen-download
 ;; , '
-;; (asdf:load-system :com.lamb.genomic-refgen)
-;; (in-package :refgen/download)
+;; (asdf:load-system :lamb.genomic.download-refgen)
+;; (in-package :download-refgen/deploy)
 
-(in-package #:refgen/download)
+(in-package :download-refgen/deploy)
 
 ;; SRG parameters
 (defparameter *restriction-enzyme-1* nil

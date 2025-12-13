@@ -1,5 +1,5 @@
-(defsystem "com.lamb.genomic-refgen"
-  :description "refgen operations, currently: download & prep"
+(defsystem "com.lamb.genomic.download-refgen"
+  :description "refgen operations, download & prep"
   :author "common-lamb (https://github.com/common-lamb)"
   :version "0.0.1"
   :license "MIT"
@@ -18,30 +18,31 @@
                "filesystem-utils" ; ql filesystem-utils
                )
   :serial t
-  :components (
-               (:file "package") ; .lisp
-               (:file "refgen-download") ; .lisp
-               )
-  )
+  :components ((:file "package")
+               (:file "deploy")))
 
 #|
 
 ;; utility naming convention
 
-;;repo name
-githib.com/common-lamb/genomic-refgen
-  genomic-refgen.asd
+repo name
+
+githib.com/common-lamb/download-refgen
+  download-refgen.asd
   package.lisp
-  refgen-download.lisp
+  deploy.lisp
 
-;;system name
-(asdf:defsystem "com.lamb.genomic-refgen"
-  (:depends-on "other-asdf-system"))
+system name
 
-;;package name
-(defpackage #:refgen/download
+(asdf:defsystem "lamb.genomic.download-refgen"
+  (:depends-on "other-asdf-system")
+  (:depends-on "lamb.genomic.download-refgen/subsystem")
+   :components ((:file "package")
+                (:file "deploy")))
+package name
+
+(defpackage #:download-refgen/deploy
   (:use #:cl)
-;;(:package-local-nicknames :cool :com-lamb-utility-long)
   (:export *sym*))
 
 |#

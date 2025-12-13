@@ -1,9 +1,8 @@
 (in-package #:cl-user)
 
-(defpackage #:refgen/download
+(defpackage #:download-refgen/deploy
   (:documentation "download and prepare refgens")
   (:use #:cl)
-  ;;(:package-local-nicknames :cool :com-lamb-utility-long)
   (:export
    ;; parameters
    *restriction-enzyme-1*
