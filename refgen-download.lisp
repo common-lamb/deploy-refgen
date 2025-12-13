@@ -61,6 +61,7 @@ ALERT: this program is not designed to respect the current contents and may over
    (cmd:cmd "which parallel")
    (cmd:cmd "which bwa")
    (cmd:cmd "which python")
+   (cmd:cmd "python -m pip show natsort")
    (cmd:cmd "python -m pip show biopython")
    (cmd:cmd "which samtools")
    (cmd:cmd "which bedtools")))
@@ -172,7 +173,82 @@ ALERT: this program is not designed to respect the current contents and may over
               :do (write-line line out))))))
 
 ;; &&& srg
+
+(defun clone-srg ()
+  "clone the SRG repo in *target-dir*"
+  ;; creates: *target-dir*/SRG-Extractor
+  (cmd:cmd "git clone https://github.com/common-lamb/SRG-Extractor.git" :in *target-dir*))
+
+;; srg params
+;; PstI–MspI
+;; https://pmc.ncbi.nlm.nih.gov/articles/PMC9394214/
+(defparameter *restriction-enzyme-1* "PstI")
+(defparameter *restriction-enzyme-2* "MspI")
+(defparameter *min-bp* "50")
+(defparameter *max-bp* "1000")
+(defparameter *species* "barley")
+(defun fasta-srg (fasta)
+  (let* (
+         (nude (filepaths:drop-extension fasta))
+         (name (pathname-name nude))
+         (frag (make-pathname :defaults nude
+                              :name (concatenate 'string name "_fragments")
+                              :type "bed"))
+         (bed (filepaths:add-extension nude "bed"))
+         (comp (make-pathname :defaults nude
+                              :name (concatenate 'string name "_fragments_complement")
+                              :type "bed"))
+         (srg (make-pathname :defaults nude
+                             :name (concatenate 'string name "_SRG")
+                             :type "fasta"))
+         )
+    ;; (print "") (print nude) (print name) (print frag) (print bed) (print comp) (print srg)
+    (format t "~&~%beginning SRG for: ~A~%" name)
+    ;;./srg_extractor.py ApeKI ApeKI 50 1000 <file>.fasta soybean
+    (format t  "~&SRG 1 : makes ~A_fragments.bed~%" name)
+    (cmd:cmd
+     (format nil "./srg_extractor.py ~A ~A ~A ~A ~A ~A"
+             *restriction-enzyme-1*
+             *restriction-enzyme-2*
+             *min-bp*
+             *max-bp*
+             fasta
+             *species*)
+     :in (merge-pathnames "SRG-Extractor/" *target-dir*))
+
+    ;; ./make_genome_file.py <file>.fasta
+    (format t  "~&SRG 2 : makes ~A.bed~%" name)
+    (cmd:cmd
+     (format nil "./make_genome_file.py ~A" fasta)
+     :in (merge-pathnames "SRG-Extractor/" *target-dir*))
+
+    ;; ./gbs_irrelevant.sh <file>_fragments.bed <file>.bed <file>_fragments_complement.bed
+    (format t  "~&SRG 3 : makes ~A_fragments_complement.bed~%" name)
+    (cmd:cmd
+     (format nil "./gbs_irrelevant.sh ~A ~A ~A" frag bed comp)
+     :in (merge-pathnames "SRG-Extractor/" *target-dir*))
+
+    ;; ./masking.sh <file>.fasta <file>_fragments_complement.bed <file>_SRG.fasta
+    (format t  "~&SRG 4 : makes ~A_SRG.fasta~%" name)
+    (cmd:cmd
+     (format nil "./masking.sh ~A ~A ~A" fasta comp srg)
+     :in (merge-pathnames "SRG-Extractor/" *target-dir*))
+
+    ;; srg 5 : makes stats table
+    ;; ./stat_srg_genome.py <file>_SRG.fasta
+    ;; ./stat_srg_genome.py /mnt/QNAP/holdens/LIBS/BarleyReferenceGenomes/test/chr1H_SRG.fasta
+    (format t "~&done SRG~%")
+    ))
+
+(fasta-srg #P"/mnt/QNAP/holdens/LIBS/BarleyReferenceGenomes/test/chr1H.fasta")
+
+
+
+
+
 ;; &&& index
+;; bwa index -a bwtsw SRG.fasta
+;; samtools faidx SRG.fasta
 
 ;;;; big operation
 ;;(download-chromosomes)
