@@ -47,8 +47,15 @@ in the *target-dir* you will have
 
 * use
 
+(check-prerequisites)
+- checks all dependencies
+- checks all parameters are set, reporting.
+- reports contents and gets approval for the target directory
+
+get help
 #+begin_src lisp
-  (documentation '*a-var* 'variable) ;; will show detailed docs for all parameters
+  (documentation '*a-var* 'variable) ;; will show detailed examples for all parameters
+  (documentation '*a-fun* 'function) ;; will show description for all functions
 #+end_src
 
 - set all parameters
