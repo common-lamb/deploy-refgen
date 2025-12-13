@@ -1,0 +1,60 @@
+* genomic-refgen
+
+#+begin_src lisp
+  (setf *a-parameter* "a-value")
+  ;; set all
+  (deploy-refgen)
+#+end_src
+
+will download, decompress, concatenate, process to reduced representation, index all chromosomes
+
+in the *target-dir* you will have
+- concatenated and individual chromosomes
+- all as srg and non srg
+- all indexed
+
+* symbols
+
+   parameters
+#+begin_src lisp
+   *ncbi-ftp*
+   *chr-link-regex*
+   *target-dir*
+   *target-dir-approval*
+#+end_src
+
+   SRG parameters
+#+begin_src lisp
+   *restriction-enzyme-1*
+   *restriction-enzyme-2*
+   *min-bp*
+   *max-bp*
+   *species*
+#+end_src
+
+   functions
+#+begin_src lisp
+   check-prerequisites
+   get-ftp-html
+   get-link-strings
+   download-chromosomes
+   decompress-chromosomes
+   concatenate-fastas
+   fastas-srg
+   fastas-index
+   deploy-refgen
+#+end_src
+
+* use
+
+#+begin_src lisp
+  (documentation '*a-var* 'variable) ;; will show detailed docs for all parameters
+#+end_src
+
+- set all parameters
+  - the target directory will get wiped, use a dedicated directory.
+- check your ftp address with (get-ftp-html)
+- check your regex with (get-link-strings)
+- check all your params and environment with (check-prerequisites)
+- do any substeps functions individually
+- do all with (deploy-refgen)

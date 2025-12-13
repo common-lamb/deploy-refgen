@@ -14,7 +14,7 @@
    *ncbi-ftp*
    *chr-link-regex*
    *target-dir*
-   ;; *target-dir-approval*
+   *target-dir-approval*
 
    ;; functions
    check-prerequisites
