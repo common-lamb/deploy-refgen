@@ -1,4 +1,4 @@
-(defsystem "com.lamb.genomic.download-refgen"
+(defsystem "lamb.genomic.download-refgen"
   :description "refgen operations, download & prep"
   :author "common-lamb (https://github.com/common-lamb)"
   :version "0.0.1"
@@ -28,7 +28,7 @@
 repo name
 
 githib.com/common-lamb/download-refgen
-  download-refgen.asd
+  lamb.genomic.download-refgen.asd
   package.lisp
   deploy.lisp
 

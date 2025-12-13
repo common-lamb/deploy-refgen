@@ -6,7 +6,7 @@
 
 ;; startup sequence
 ;;
-;; M-x conda-env-activate try-refgen-download
+;; M-x conda-env-activate download-refgen
 ;; , '
 ;; (asdf:load-system :lamb.genomic.download-refgen)
 ;; (in-package :download-refgen/deploy)
