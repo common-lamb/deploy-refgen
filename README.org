@@ -1,4 +1,4 @@
-* genomic-refgen
+* download-refgen
 
 #+begin_src lisp
   (setf *a-parameter* "a-value")

@@ -37,7 +37,7 @@
 ("fosskers-filepaths" .
  (:class qlot/source/ultralisp:source-ultralisp
   :initargs (:%version :latest)
-  :version "ultralisp-20251212144000"))
+  :version "ultralisp-20251213215000"))
 ("filesystem-utils" .
  (:class qlot/source/ql:source-ql
   :initargs (:%version :latest)

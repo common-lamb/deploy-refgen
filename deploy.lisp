@@ -1,5 +1,6 @@
 ;; setup sequence
 ;;
+;; clone repo
 ;; qlot init
 ;; qlot install
 ;; qlot add {each from asdf}
