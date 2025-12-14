@@ -34,15 +34,18 @@ in the *target-dir* you will have
 
    functions
 #+begin_src lisp
-   check-prerequisites
-   get-ftp-html
-   get-link-strings
-   download-chromosomes
-   decompress-chromosomes
-   concatenate-fastas
-   fastas-srg
-   fastas-index
-   deploy-refgen
+  ;; preflight
+  (check-prerequisites)
+  (get-ftp-html)
+  (get-link-strings)
+  ;; steps
+  (download-chromosomes)
+  (decompress-chromosomes)
+  (concatenate-fastas)
+  (fastas-srg)
+  (fastas-index)
+  ;; all in one
+  (deploy-refgen)
 #+end_src
 
 * use
