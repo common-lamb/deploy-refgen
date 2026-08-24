@@ -9,10 +9,10 @@
 ;;
 ;; M-x conda-env-activate download-refgen
 ;; , '
-;; (asdf:load-system :lamb.genomic.download-refgen)
+;; (asdf:load-system :metarepl.genomic.deploy-refgen)
 ;; (in-package :download-refgen/deploy)
 
-(in-package :download-refgen/deploy)
+(in-package :deploy-refgen)
 
 ;; SRG parameters
 (defparameter *restriction-enzyme-1* nil
@@ -261,7 +261,7 @@ try: (documentation '*some-var* 'variable) ~&~&~A"
   (unless (probe-file (merge-pathnames "SRG-Extractor" *target-dir*))
     ;; creates: *target-dir*/SRG-Extractor
     ;; &&& pull request and change link to /jlaroche/
-    (cmd:cmd "git clone https://github.com/common-lamb/SRG-Extractor.git" :in *target-dir*)))
+    (cmd:cmd "git clone https://github.com/metarepl/SRG-Extractor.git" :in *target-dir*)))
 
 (defun fasta-srg (fasta)
   (clone-srg)

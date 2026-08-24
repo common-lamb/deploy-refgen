@@ -1,6 +1,6 @@
 (in-package #:cl-user)
 
-(defpackage #:download-refgen/deploy
+(defpackage #:deploy-refgen
   (:documentation "download and prepare refgens")
   (:use #:cl)
   (:export
